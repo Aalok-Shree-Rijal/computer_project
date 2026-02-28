@@ -18,7 +18,7 @@
     <div class="auth-logo">StudyArc</div>
     <div class="auth-tagline">Your personal academic performance tracker</div>
     <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</button>
+      <button class="auth-tab active" id="tab-login"  onclick="switchAuthTab('login')">Login</button>
       <button class="auth-tab"        id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
     </div>
     <form id="auth-form" onsubmit="handleAuth(event)">
@@ -41,6 +41,40 @@
 </div>
 
 <!-- ══════════════════════════════════════════
+     ADD SUBJECT MODAL
+═══════════════════════════════════════════ -->
+<div id="modal-overlay" onclick="closeModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Add New Subject</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="submitAddSubject(event)">
+      <div class="form-group">
+        <label class="form-label">Subject Name</label>
+        <input class="form-input" id="modal-subject-name" type="text" placeholder="e.g. History, Economics…" maxlength="30" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">
+          Short Label
+          <span style="color:var(--text3); font-weight:400; text-transform:none; font-size:11px"> — shown on charts (max 5 chars)</span>
+        </label>
+        <input class="form-input" id="modal-subject-short" type="text" placeholder="e.g. Hist" maxlength="5" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pick a Colour</label>
+        <div class="color-swatches" id="color-swatches"></div>
+      </div>
+      <div class="error-msg" id="modal-error"></div>
+      <div style="display:flex; gap:10px; margin-top:20px">
+        <button type="button" class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="flex:2">Add Subject →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      APP SCREEN
 ═══════════════════════════════════════════ -->
 <div id="app-screen">
@@ -50,16 +84,17 @@
     <aside class="sidebar">
       <div class="sidebar-logo">StudyArc</div>
       <div class="sidebar-tagline">Grade 11–12 Planner</div>
-      <button class="nav-item active" data-page="dashboard"   onclick="navigate('dashboard')"  ><span class="nav-icon">⊞</span> Dashboard</button>
-      <button class="nav-item"        data-page="timer"        onclick="navigate('timer')"       ><span class="nav-icon">◷</span> Study Timer</button>
-      <button class="nav-item"        data-page="marks"        onclick="navigate('marks')"       ><span class="nav-icon">✎</span> Test Marks</button>
-      <button class="nav-item"        data-page="analytics"    onclick="navigate('analytics')"   ><span class="nav-icon">⟴</span> Analytics</button>
-      <button class="nav-item"        data-page="suggestions"  onclick="navigate('suggestions')" ><span class="nav-icon">✦</span> Suggestions</button>
+      <button class="nav-item active" data-page="dashboard"  onclick="navigate('dashboard')" ><span class="nav-icon">⊞</span> Dashboard</button>
+      <button class="nav-item"        data-page="timer"       onclick="navigate('timer')"      ><span class="nav-icon">◷</span> Study Timer</button>
+      <button class="nav-item"        data-page="marks"       onclick="navigate('marks')"      ><span class="nav-icon">✎</span> Test Marks</button>
+      <button class="nav-item"        data-page="analytics"   onclick="navigate('analytics')"  ><span class="nav-icon">⟴</span> Analytics</button>
+      <button class="nav-item"        data-page="suggestions" onclick="navigate('suggestions')"><span class="nav-icon">✦</span> Suggestions</button>
+      <button class="nav-item"        data-page="subjects"    onclick="navigate('subjects')"   ><span class="nav-icon">✏</span> My Subjects</button>
       <div class="sidebar-footer">
         <div class="user-info">
           <div class="user-avatar" id="user-avatar">?</div>
           <div>
-            <div class="user-name"      id="user-name-disp">—</div>
+            <div class="user-name"       id="user-name-disp">—</div>
             <div class="user-email-disp" id="user-email-disp">—</div>
           </div>
         </div>
@@ -116,11 +151,11 @@
           <div class="card">
             <div class="card-title">Select Subject</div>
             <div class="subject-grid" id="subject-grid"></div>
-            <div class="timer-subject-label" id="timer-subject-label">Selected: Mathematics</div>
+            <div class="timer-subject-label" id="timer-subject-label">—</div>
             <div class="timer-display" id="timer-display">00:00:00</div>
             <div class="timer-controls">
               <button class="btn btn-start" id="btn-timer-toggle" onclick="toggleTimer()">▶ Start</button>
-              <button class="btn btn-reset" id="btn-timer-reset" onclick="resetTimer()" style="display:none">Reset</button>
+              <button class="btn btn-reset" id="btn-timer-reset"  onclick="resetTimer()" style="display:none">Reset</button>
             </div>
           </div>
           <div class="card">
@@ -202,6 +237,32 @@
             marks below 60% with adequate time suggest changing study techniques;
             high marks with very high time suggest redistributing effort to weaker subjects.
             Log more data to get better personalised recommendations.
+          </div>
+        </div>
+      </div>
+
+      <!-- MY SUBJECTS -->
+      <div class="page" id="page-subjects">
+        <div class="page-title">My Subjects</div>
+        <div class="page-sub">Add, customise, or remove the subjects you study</div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px">
+            <div>
+              <div class="card-title" style="margin-bottom:2px">Your Subjects</div>
+              <div style="font-size:13px; color:var(--text3)">Up to 12 subjects. Deleting removes all linked sessions and marks.</div>
+            </div>
+            <button class="btn btn-primary" style="padding:10px 18px; font-size:13px; white-space:nowrap" onclick="openModal()">+ Add Subject</button>
+          </div>
+          <div id="subjects-grid-manage"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:10px">💡 Tips</div>
+          <div class="suggestions-info">
+            Add any subject you study — History, Economics, a language, even "Reading" or "Revision".
+            Each subject gets its own colour shown across the timer, charts, and analytics.
+            The short label (e.g. "Hist") appears on charts where space is tight.
           </div>
         </div>
       </div>
