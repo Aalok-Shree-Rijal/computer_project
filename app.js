@@ -154,10 +154,10 @@ function logout() {
 // ══════════════════════════════════════════
 
 function navigate(page) {
-  document.querySelectorAll(".page").forEach(p     => p.classList.remove("active"));
-  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item, .bottom-nav-item").forEach(n => n.classList.remove("active"));
   document.getElementById(`page-${page}`).classList.add("active");
-  document.querySelector(`[data-page="${page}"]`).classList.add("active");
+  document.querySelectorAll(`[data-page="${page}"]`).forEach(el => el.classList.add("active"));
 
   if (page === "dashboard")   renderDashboard();
   if (page === "timer")       { buildSubjectGrid(); renderSessions(); }
@@ -166,6 +166,19 @@ function navigate(page) {
   if (page === "suggestions") renderSuggestions();
   if (page === "subjects")    renderSubjectsManage();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ══════════════════════════════════════════
 // SUBJECT MODAL
@@ -558,16 +571,16 @@ function renderMarksTable() {
   const rows = [...marks].reverse().map(m => `
     <tr>
       <td style="color:${subjectColor(m.subject)}; font-weight:600">${subjectShort(m.subject)}</td>
-      <td style="color:var(--text2)">${m.label || "—"}</td>
+      <td class="col-label" style="color:var(--text2)">${m.label || "—"}</td>
       <td style="font-family:'DM Mono',monospace">${m.score}/${m.total}</td>
       <td><span class="pct-badge ${pctClass(m.pct)}">${m.pct.toFixed(0)}%</span></td>
-      <td style="color:var(--text3); font-size:12px">${new Date(m.date).toLocaleDateString()}</td>
+      <td class="col-date" style="color:var(--text3); font-size:12px">${new Date(m.date).toLocaleDateString()}</td>
       <td><button class="btn-danger" onclick="deleteMark(${m.id})">✕</button></td>
     </tr>
   `).join("");
   wrap.innerHTML = `
     <table class="marks-table">
-      <thead><tr><th>Subject</th><th>Label</th><th>Score</th><th>%</th><th>Date</th><th></th></tr></thead>
+      <thead><tr><th>Subject</th><th class="col-label">Label</th><th>Score</th><th>%</th><th class="col-date">Date</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -588,15 +601,15 @@ function renderAnalytics() {
     <tr>
       <td style="color:${s.color}; font-weight:600">${s.subject}</td>
       <td style="font-family:'DM Mono',monospace; font-size:13px">${fmtHours(s.totalSecs)}h</td>
-      <td style="font-family:'DM Mono',monospace; font-size:13px; color:var(--text2)">${fmtHours(s.weekSecs)}h</td>
-      <td style="color:var(--text3)">${s.markCount}</td>
+      <td class="col-week" style="font-family:'DM Mono',monospace; font-size:13px; color:var(--text2)">${fmtHours(s.weekSecs)}h</td>
+      <td class="col-tests" style="color:var(--text3)">${s.markCount}</td>
       <td>${s.avgMark !== null ? `<span class="pct-badge ${pctClass(s.avgMark)}">${s.avgMark.toFixed(0)}%</span>` : `<span style="color:var(--text4)">—</span>`}</td>
     </tr>
   `).join("");
 
   document.getElementById("analytics-breakdown-wrap").innerHTML = `
     <table class="marks-table analytics-breakdown">
-      <thead><tr><th>Subject</th><th>Total Study</th><th>This Week</th><th>Tests</th><th>Avg Mark</th></tr></thead>
+      <thead><tr><th>Subject</th><th>Total</th><th class="col-week">This Week</th><th class="col-tests">Tests</th><th>Avg</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }

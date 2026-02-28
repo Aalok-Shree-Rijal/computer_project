@@ -201,6 +201,7 @@
           <div id="marks-table-wrap">
             <div class="empty-state">No marks logged yet.</div>
           </div>
+          <!-- col-label and col-date are hidden on mobile via CSS -->
         </div>
       </div>
 
@@ -270,6 +271,27 @@
     </main>
   </div>
 </div>
+
+<!-- ══════════════════════════════════════════
+     MOBILE BOTTOM NAV
+═══════════════════════════════════════════ -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bottom-nav-item active" data-page="dashboard"  onclick="navigate('dashboard')" >
+    <span class="bn-icon">⊞</span><span>Home</span>
+  </button>
+  <button class="bottom-nav-item" data-page="timer"       onclick="navigate('timer')"      >
+    <span class="bn-icon">◷</span><span>Timer</span>
+  </button>
+  <button class="bottom-nav-item" data-page="marks"       onclick="navigate('marks')"      >
+    <span class="bn-icon">✎</span><span>Marks</span>
+  </button>
+  <button class="bottom-nav-item" data-page="analytics"   onclick="navigate('analytics')"  >
+    <span class="bn-icon">⟴</span><span>Stats</span>
+  </button>
+  <button class="bottom-nav-item" data-page="subjects"    onclick="navigate('subjects')"   >
+    <span class="bn-icon">✏</span><span>Subjects</span>
+  </button>
+</nav>
 
 <script src="app.js"></script>
 </body>
