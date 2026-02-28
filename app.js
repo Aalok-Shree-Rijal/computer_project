@@ -96,6 +96,7 @@ function switchAuthTab(mode) {
   document.getElementById("tab-signup").classList.toggle("active", mode === "signup");
   document.getElementById("field-name").style.display = mode === "signup" ? "block" : "none";
   document.getElementById("auth-submit-btn").textContent = mode === "login" ? "Login →" : "Create Account →";
+  document.getElementById("auth-error").style.color = "";
   document.getElementById("auth-error").textContent = "";
 }
 
@@ -128,7 +129,9 @@ function loginAs(userData) {
   document.getElementById("auth-screen").style.display = "none";
   document.getElementById("app-screen").style.display  = "block";
 
-  document.getElementById("user-avatar").textContent    = userData.name[0].toUpperCase();
+  document.getElementById("user-avatar").textContent        = userData.name[0].toUpperCase();
+  document.getElementById("mobile-user-avatar").textContent = userData.name[0].toUpperCase();
+  document.getElementById("mobile-user-name-short").textContent = userData.name.split(" ")[0];
   document.getElementById("user-name-disp").textContent  = userData.name;
   document.getElementById("user-email-disp").textContent = userData.email;
   document.getElementById("dash-greeting").textContent   = `Welcome back, ${userData.name.split(" ")[0]} 👋`;
@@ -140,6 +143,9 @@ function loginAs(userData) {
 
 function logout() {
   if (timerRunning) { clearInterval(timerInterval); timerRunning = false; timerSeconds = 0; }
+  // Full sign out — remove the auto-login session too
+  localStorage.removeItem("session:current");
+  closeAllPopovers();
   currentUser = null; subjects = []; sessions = []; marks = [];
   document.getElementById("app-screen").style.display  = "none";
   document.getElementById("auth-screen").style.display = "flex";
@@ -147,6 +153,32 @@ function logout() {
   document.getElementById("input-password").value = "";
   document.getElementById("input-name").value     = "";
   document.getElementById("auth-error").textContent = "";
+}
+
+// Exit — saves session so user is auto-logged in next visit
+function exitApp() {
+  if (!currentUser) return;
+  store.set("session:current", currentUser.email);
+  closeAllPopovers();
+  // On a real device you'd close the window; here just give feedback
+  document.getElementById("app-screen").style.display  = "none";
+  document.getElementById("auth-screen").style.display = "flex";
+  // Show a friendly message on the auth screen
+  document.getElementById("auth-error").style.color = "var(--green)";
+  document.getElementById("auth-error").textContent = "✓ You\'ll be logged in automatically next time.";
+}
+
+// Toggle a specific popover open/closed
+function toggleProfilePopover(id) {
+  const popover = document.getElementById(id);
+  const isOpen  = popover.classList.contains("open");
+  closeAllPopovers();
+  if (!isOpen) popover.classList.add("open");
+}
+
+// Close every open popover
+function closeAllPopovers() {
+  document.querySelectorAll(".profile-popover").forEach(p => p.classList.remove("open"));
 }
 
 // ══════════════════════════════════════════
@@ -649,8 +681,27 @@ function renderSuggestions() {
 }
 
 // ══════════════════════════════════════════
-// KEYBOARD SHORTCUT — close modal with Escape
+// KEYBOARD SHORTCUT — close modal / popovers with Escape
 // ══════════════════════════════════════════
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeModal();
+  if (e.key === "Escape") { closeModal(); closeAllPopovers(); }
 });
+
+// Close popovers when clicking outside them
+document.addEventListener("click", e => {
+  if (!e.target.closest(".profile-popover") && !e.target.closest(".user-info") && !e.target.closest(".mobile-avatar-btn")) {
+    closeAllPopovers();
+  }
+});
+
+// ══════════════════════════════════════════
+// AUTO-LOGIN — check if user chose "Exit" last time
+// ══════════════════════════════════════════
+(function checkAutoLogin() {
+  const savedEmail = store.get("session:current");
+  if (!savedEmail) return;
+  const userData = store.get(`user:${savedEmail}`);
+  if (!userData) { localStorage.removeItem("session:current"); return; }
+  // Valid saved session — log them straight in
+  loginAs(userData);
+})();

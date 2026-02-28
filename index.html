@@ -91,19 +91,67 @@
       <button class="nav-item"        data-page="suggestions" onclick="navigate('suggestions')"><span class="nav-icon">✦</span> Suggestions</button>
       <button class="nav-item"        data-page="subjects"    onclick="navigate('subjects')"   ><span class="nav-icon">✏</span> My Subjects</button>
       <div class="sidebar-footer">
-        <div class="user-info">
+        <div class="user-info" style="cursor:pointer" onclick="toggleProfilePopover('sidebar-popover')">
           <div class="user-avatar" id="user-avatar">?</div>
           <div>
             <div class="user-name"       id="user-name-disp">—</div>
             <div class="user-email-disp" id="user-email-disp">—</div>
           </div>
+          <span style="margin-left:auto; color:var(--text3); font-size:12px">▾</span>
         </div>
-        <button class="btn-logout" onclick="logout()">Sign Out</button>
+        <!-- Sidebar profile popover -->
+        <div class="profile-popover" id="sidebar-popover">
+          <button class="popover-btn" onclick="logout()">
+            <span class="popover-icon">⎋</span>
+            <div>
+              <div class="popover-label">Sign Out</div>
+              <div class="popover-desc">Clear session, return to login</div>
+            </div>
+          </button>
+          <div class="popover-divider"></div>
+          <button class="popover-btn" onclick="exitApp()">
+            <span class="popover-icon">✓</span>
+            <div>
+              <div class="popover-label">Exit</div>
+              <div class="popover-desc">Stay logged in next visit</div>
+            </div>
+          </button>
+        </div>
       </div>
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="main">
+
+      <!-- MOBILE TOP BAR (hidden on desktop, shown on mobile) -->
+      <div class="mobile-topbar">
+        <div class="mobile-topbar-logo">StudyArc</div>
+        <div style="position:relative">
+          <button class="mobile-avatar-btn" onclick="toggleProfilePopover('mobile-popover')">
+            <div class="user-avatar-sm" id="mobile-user-avatar">?</div>
+            <span id="mobile-user-name-short">—</span>
+            <span style="font-size:10px; color:var(--text3)">▾</span>
+          </button>
+          <!-- Mobile profile popover -->
+          <div class="profile-popover profile-popover-right" id="mobile-popover">
+            <button class="popover-btn" onclick="logout()">
+              <span class="popover-icon">⎋</span>
+              <div>
+                <div class="popover-label">Sign Out</div>
+                <div class="popover-desc">Clear session, return to login</div>
+              </div>
+            </button>
+            <div class="popover-divider"></div>
+            <button class="popover-btn" onclick="exitApp()">
+              <span class="popover-icon">✓</span>
+              <div>
+                <div class="popover-label">Exit</div>
+                <div class="popover-desc">Stay logged in next visit</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
@@ -269,29 +317,19 @@
       </div>
 
     </main>
+
+    <!-- MOBILE BOTTOM NAV — inside #app-screen so it's hidden before login -->
+    <nav class="bottom-nav">
+      <button class="bottom-nav-item active" data-page="dashboard"  onclick="navigate('dashboard')"><span class="bn-icon">⊞</span><span>Home</span></button>
+      <button class="bottom-nav-item" data-page="timer"             onclick="navigate('timer')"     ><span class="bn-icon">◷</span><span>Timer</span></button>
+      <button class="bottom-nav-item" data-page="marks"             onclick="navigate('marks')"     ><span class="bn-icon">✎</span><span>Marks</span></button>
+      <button class="bottom-nav-item" data-page="analytics"         onclick="navigate('analytics')" ><span class="bn-icon">⟴</span><span>Stats</span></button>
+      <button class="bottom-nav-item" data-page="suggestions"       onclick="navigate('suggestions')"><span class="bn-icon">✦</span><span>Tips</span></button>
+      <button class="bottom-nav-item" data-page="subjects"          onclick="navigate('subjects')"  ><span class="bn-icon">✏</span><span>Subjects</span></button>
+    </nav>
+
   </div>
 </div>
-
-<!-- ══════════════════════════════════════════
-     MOBILE BOTTOM NAV
-═══════════════════════════════════════════ -->
-<nav class="bottom-nav" id="bottom-nav">
-  <button class="bottom-nav-item active" data-page="dashboard"  onclick="navigate('dashboard')" >
-    <span class="bn-icon">⊞</span><span>Home</span>
-  </button>
-  <button class="bottom-nav-item" data-page="timer"       onclick="navigate('timer')"      >
-    <span class="bn-icon">◷</span><span>Timer</span>
-  </button>
-  <button class="bottom-nav-item" data-page="marks"       onclick="navigate('marks')"      >
-    <span class="bn-icon">✎</span><span>Marks</span>
-  </button>
-  <button class="bottom-nav-item" data-page="analytics"   onclick="navigate('analytics')"  >
-    <span class="bn-icon">⟴</span><span>Stats</span>
-  </button>
-  <button class="bottom-nav-item" data-page="subjects"    onclick="navigate('subjects')"   >
-    <span class="bn-icon">✏</span><span>Subjects</span>
-  </button>
-</nav>
 
 <script src="app.js"></script>
 </body>
