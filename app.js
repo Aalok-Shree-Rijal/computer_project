@@ -35,9 +35,10 @@ let currentUser   = null;
 let subjects      = [];   // [{ name, short, color }]
 let sessions      = [];
 let marks         = [];
-let timerInterval = null;
-let timerSeconds  = 0;
-let timerRunning  = false;
+let timerInterval  = null;
+let timerSeconds   = 0;  // elapsed seconds at last pause (for pause/resume support)
+let timerStartTime = null; // Date.now() when current run started
+let timerRunning   = false;
 let timerSubject  = null; // set after subjects load
 let authMode      = "login";
 let selectedColor = PALETTE[0]; // colour picked in modal
@@ -142,7 +143,7 @@ function loginAs(userData) {
 }
 
 function logout() {
-  if (timerRunning) { clearInterval(timerInterval); timerRunning = false; timerSeconds = 0; }
+  if (timerRunning) { clearInterval(timerInterval); timerRunning = false; timerSeconds = 0; timerStartTime = null; }
   // Full sign out — remove the auto-login session too
   localStorage.removeItem("session:current");
   closeAllPopovers();
@@ -497,14 +498,27 @@ function buildSubjectGrid() {
   document.getElementById("timer-subject-label").textContent = "Selected: " + timerSubject;
 }
 
+function getElapsed() {
+  // Total elapsed = previously accumulated seconds + current run duration
+  if (!timerStartTime) return timerSeconds;
+  return timerSeconds + Math.floor((Date.now() - timerStartTime) / 1000);
+}
+
+function tickTimer() {
+  document.getElementById("timer-display").textContent = fmtClock(getElapsed());
+}
+
 function toggleTimer() {
   if (!timerSubject || !subjects.length) return;
   const btn      = document.getElementById("btn-timer-toggle");
   const resetBtn = document.getElementById("btn-timer-reset");
 
   if (timerRunning) {
+    // STOP — snapshot the real elapsed time before clearing
     clearInterval(timerInterval);
-    timerRunning     = false;
+    timerRunning  = false;
+    timerSeconds  = getElapsed(); // save accurate total
+    timerStartTime = null;
     btn.textContent  = "▶ Start";
     btn.className    = "btn btn-start";
     document.getElementById("timer-display").classList.remove("running");
@@ -512,32 +526,34 @@ function toggleTimer() {
     if (timerSeconds > 0) {
       sessions.push({ subject: timerSubject, seconds: timerSeconds, date: new Date().toISOString() });
       saveSessions();
-      timerSeconds = 0;
+      timerSeconds   = 0;
+      timerStartTime = null;
       document.getElementById("timer-display").textContent = "00:00:00";
       resetBtn.style.display = "none";
       renderSessions();
     }
   } else {
-    timerRunning    = true;
+    // START — record the wall-clock start time
+    timerStartTime = Date.now();
+    timerRunning   = true;
     btn.textContent = "⏹ Stop & Save";
     btn.className   = "btn btn-stop";
     document.getElementById("timer-display").classList.add("running");
     resetBtn.style.display = "inline-block";
-    timerInterval = setInterval(() => {
-      timerSeconds++;
-      document.getElementById("timer-display").textContent = fmtClock(timerSeconds);
-    }, 1000);
+    // Use 500ms interval — updates twice per second so display never lags by a full second
+    timerInterval = setInterval(tickTimer, 500);
   }
 }
 
 function resetTimer() {
   clearInterval(timerInterval);
-  timerRunning = false;
-  timerSeconds = 0;
-  document.getElementById("timer-display").textContent    = "00:00:00";
+  timerRunning   = false;
+  timerSeconds   = 0;
+  timerStartTime = null;
+  document.getElementById("timer-display").textContent     = "00:00:00";
   document.getElementById("timer-display").classList.remove("running");
-  document.getElementById("btn-timer-toggle").textContent = "▶ Start";
-  document.getElementById("btn-timer-toggle").className   = "btn btn-start";
+  document.getElementById("btn-timer-toggle").textContent  = "▶ Start";
+  document.getElementById("btn-timer-toggle").className    = "btn btn-start";
   document.getElementById("btn-timer-reset").style.display = "none";
 }
 
