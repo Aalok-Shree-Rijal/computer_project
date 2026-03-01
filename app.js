@@ -36,9 +36,10 @@ let subjects      = [];   // [{ name, short, color }]
 let sessions      = [];
 let marks         = [];
 let timerInterval  = null;
-let timerSeconds   = 0;  // elapsed seconds at last pause (for pause/resume support)
-let timerStartTime = null; // Date.now() when current run started
+let timerSeconds   = 0;     // elapsed seconds accumulated (grows on pause)
+let timerStartTime = null;  // Date.now() when current run started
 let timerRunning   = false;
+let timerPaused    = false; // true when paused (not running, but has time)
 let timerSubject  = null; // set after subjects load
 let authMode      = "login";
 let selectedColor = PALETTE[0]; // colour picked in modal
@@ -143,7 +144,7 @@ function loginAs(userData) {
 }
 
 function logout() {
-  if (timerRunning) { clearInterval(timerInterval); timerRunning = false; timerSeconds = 0; timerStartTime = null; }
+  if (timerRunning || timerPaused) { clearInterval(timerInterval); timerRunning = false; timerPaused = false; timerSeconds = 0; timerStartTime = null; }
   // Full sign out — remove the auto-login session too
   localStorage.removeItem("session:current");
   closeAllPopovers();
@@ -499,7 +500,6 @@ function buildSubjectGrid() {
 }
 
 function getElapsed() {
-  // Total elapsed = previously accumulated seconds + current run duration
   if (!timerStartTime) return timerSeconds;
   return timerSeconds + Math.floor((Date.now() - timerStartTime) / 1000);
 }
@@ -511,16 +511,21 @@ function tickTimer() {
 function toggleTimer() {
   if (!timerSubject || !subjects.length) return;
   const btn      = document.getElementById("btn-timer-toggle");
+  const pauseBtn = document.getElementById("btn-timer-pause");
   const resetBtn = document.getElementById("btn-timer-reset");
 
-  if (timerRunning) {
-    // STOP — snapshot the real elapsed time before clearing
+  if (timerRunning || timerPaused) {
+    // ── STOP & SAVE (works whether running or paused) ──
     clearInterval(timerInterval);
-    timerRunning  = false;
-    timerSeconds  = getElapsed(); // save accurate total
+    timerSeconds   = getElapsed();
+    timerRunning   = false;
+    timerPaused    = false;
     timerStartTime = null;
+
     btn.textContent  = "▶ Start";
     btn.className    = "btn btn-start";
+    pauseBtn.style.display = "none";
+    resetBtn.style.display = "none";
     document.getElementById("timer-display").classList.remove("running");
 
     if (timerSeconds > 0) {
@@ -529,31 +534,65 @@ function toggleTimer() {
       timerSeconds   = 0;
       timerStartTime = null;
       document.getElementById("timer-display").textContent = "00:00:00";
-      resetBtn.style.display = "none";
       renderSessions();
     }
   } else {
-    // START — record the wall-clock start time
+    // ── START fresh (or resume after subject change) ──
     timerStartTime = Date.now();
     timerRunning   = true;
-    btn.textContent = "⏹ Stop & Save";
-    btn.className   = "btn btn-stop";
+    timerPaused    = false;
+    timerInterval  = setInterval(tickTimer, 500);
+
+    btn.textContent    = "⏹ Stop & Save";
+    btn.className      = "btn btn-stop";
+    pauseBtn.style.display  = "inline-block";
+    pauseBtn.textContent    = "⏸ Pause";
+    pauseBtn.className      = "btn btn-pause";
+    resetBtn.style.display  = "inline-block";
     document.getElementById("timer-display").classList.add("running");
-    resetBtn.style.display = "inline-block";
-    // Use 500ms interval — updates twice per second so display never lags by a full second
-    timerInterval = setInterval(tickTimer, 500);
+  }
+}
+
+function pauseResumeTimer() {
+  const pauseBtn = document.getElementById("btn-timer-pause");
+
+  if (timerRunning) {
+    // ── PAUSE ──
+    clearInterval(timerInterval);
+    timerSeconds   = getElapsed();
+    timerStartTime = null;
+    timerRunning   = false;
+    timerPaused    = true;
+
+    document.getElementById("timer-display").classList.remove("running");
+    pauseBtn.textContent = "▶ Resume";
+    pauseBtn.className   = "btn btn-start";
+
+  } else if (timerPaused) {
+    // ── RESUME ──
+    timerStartTime = Date.now();
+    timerRunning   = true;
+    timerPaused    = false;
+    timerInterval  = setInterval(tickTimer, 500);
+
+    document.getElementById("timer-display").classList.add("running");
+    pauseBtn.textContent = "⏸ Pause";
+    pauseBtn.className   = "btn btn-pause";
   }
 }
 
 function resetTimer() {
   clearInterval(timerInterval);
   timerRunning   = false;
+  timerPaused    = false;
   timerSeconds   = 0;
   timerStartTime = null;
-  document.getElementById("timer-display").textContent     = "00:00:00";
+
+  document.getElementById("timer-display").textContent    = "00:00:00";
   document.getElementById("timer-display").classList.remove("running");
-  document.getElementById("btn-timer-toggle").textContent  = "▶ Start";
-  document.getElementById("btn-timer-toggle").className    = "btn btn-start";
+  document.getElementById("btn-timer-toggle").textContent = "▶ Start";
+  document.getElementById("btn-timer-toggle").className   = "btn btn-start";
+  document.getElementById("btn-timer-pause").style.display = "none";
   document.getElementById("btn-timer-reset").style.display = "none";
 }
 

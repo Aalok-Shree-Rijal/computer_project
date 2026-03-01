@@ -289,6 +289,7 @@ html, body {
 
 .btn-start { background: var(--accent); color: #fff; }
 .btn-stop  { background: var(--red);    color: #fff; }
+.btn-pause { background: var(--blue);   color: #fff; }
 .btn-reset { background: var(--bg4);    color: var(--text2); }
 
 .btn-logout {
